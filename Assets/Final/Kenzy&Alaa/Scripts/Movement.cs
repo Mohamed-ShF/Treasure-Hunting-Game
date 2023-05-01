@@ -13,8 +13,6 @@ public class Movement : MonoBehaviour
     Animator animator;
     float direction;
     int score = 0;
-    public float attackRate = 1f;
-    float nextAttackTime = 0f;
     [SerializeField] float speed = 0f;
     [SerializeField] float jumpPower = 0f;
     [SerializeField] LayerMask GroundLayer;
@@ -94,14 +92,8 @@ public class Movement : MonoBehaviour
     }
     void PlayerAttack()
     {
-        //to make the player doesn't attack consecutive, using time
-        if (Time.time >= nextAttackTime)
-        {
-            if (Input.GetKeyDown(KeyCode.X))
-            {
-                animator.SetTrigger("Attack");
-                nextAttackTime = Time.time + attackRate;
-            }
+        if(Input.GetKeyDown(KeyCode.X)) {
+            animator.SetTrigger("Attack");
         }
     }
     void die()
