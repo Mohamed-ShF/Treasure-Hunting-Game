@@ -14,6 +14,17 @@ public class Player2Movement : MonoBehaviour
     float playerDirection;
     int attackIndex = 0;
     int score = 0;
+    public float swordAttackRate = 1f;
+    public float gunAttackRate = 1f;
+    float swordNextAttackTime = 0f;
+    float gunNextAttackTime = 0f;
+    public Transform attackpoint;
+    public float swordAttackRange = 0.5f;
+    public int swordAttackDamage = 25;
+    public LayerMask enemyLayers;
+    public float maxHealth = 100;
+    float currentHealth;
+
     [SerializeField] float speed = 0f;
     [SerializeField] float jumpPower = 0f;
     [SerializeField] LayerMask GroundLayer;
@@ -40,7 +51,7 @@ public class Player2Movement : MonoBehaviour
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         StartCoroutine(WhereIsTheMapSound());
-
+        currentHealth = maxHealth;
     }
 
 
@@ -52,7 +63,7 @@ public class Player2Movement : MonoBehaviour
         Animation();
         PlayerAttack();
         playerAnimationAttackWithGun();
-        Debug.Log(playerDirection);
+        //Debug.Log(playerDirection);
 
         // Debug.Log(playerDirection);
 
@@ -69,7 +80,7 @@ public class Player2Movement : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded())
         {
            // Jump.Play();
-            Debug.Log("Jump");
+            //Debug.Log("Jump");
             rigidbody.velocity = new Vector2(rigidbody.velocity.x, jumpPower);
         }
     }
@@ -106,56 +117,74 @@ public class Player2Movement : MonoBehaviour
     }
     void PlayerAttack()
     {
-        if (Input.GetKeyDown(KeyCode.X))
+        if (Time.time >= swordNextAttackTime)    //to make the player doesn't attack consecutive, using time
         {
-            if (attackIndex == 0)
+            if (Input.GetKeyDown(KeyCode.X))
             {
-                animator.SetTrigger("Attack1");
-                attackIndex++;
-                attackIndex %= 3;
+                if (attackIndex == 0)
+                {
+                    animator.SetTrigger("Attack1");
+                    attackIndex++;
+                    attackIndex %= 3;
+                    swordNextAttackTime = Time.time + swordAttackRate;
 
+                }
+                else if (attackIndex == 1)
+                {
+                    animator.SetTrigger("Attack2");
+                    attackIndex++;
+                    attackIndex %= 3;
+                    swordNextAttackTime = Time.time + swordAttackRate;
+
+                }
+                else
+                {
+                    animator.SetTrigger("Attack3");
+                    attackIndex++;
+                    attackIndex %= 3;
+                    swordNextAttackTime = Time.time + swordAttackRate;
+
+                }
+
+                // animator.SetInteger("AttackIndex", attackIndex);
+
+                Debug.Log(attackIndex);
+
+                // put every thing circle touch in array 
+                Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackpoint.position,swordAttackRange,enemyLayers);
+
+                // loop on the array to find the enemy
+                foreach(Collider2D enemy in hitEnemies)
+                {
+                    Debug.Log("enemy hit");
+                    enemy.GetComponent<Skeleton>().takeDamage(swordAttackDamage);
+                }
             }
-            else if(attackIndex == 1) {
-                animator.SetTrigger("Attack2");
-                attackIndex++;
-                attackIndex %= 3;
-
-            }
-            else
-            {
-                animator.SetTrigger("Attack3");
-                attackIndex++;
-                attackIndex %= 3;
-
-            }
-
-            
-
-            // animator.SetInteger("AttackIndex", attackIndex);
-
-            Debug.Log(attackIndex);
         }
-        
     }
     void playerAnimationAttackWithGun() 
     {
-        if (Input.GetKeyDown(KeyCode.Y))
+        if (Time.time >= gunNextAttackTime)    //to make the player doesn't attack consecutive, using time
         {
-            if (spriteRenderer.flipX==false)
+            if (Input.GetKeyDown(KeyCode.Y))
             {
-                rigidbody.bodyType = RigidbodyType2D.Static;
-                StartCoroutine(bullletspawnRight());
-
+                if (spriteRenderer.flipX == false)
+                {
+                    rigidbody.bodyType = RigidbodyType2D.Static;
+                    StartCoroutine(bullletspawnRight());
+                    gunNextAttackTime = Time.time + gunAttackRate;
+                }
+                else if (spriteRenderer.flipX == true)
+                {
+                    rigidbody.bodyType = RigidbodyType2D.Static;
+                    StartCoroutine(bullletspawnLeft());
+                    gunNextAttackTime = Time.time + gunAttackRate;
+                }
+                animator.SetTrigger("GunUse");
             }
-            else if(spriteRenderer.flipX==true) {
-                rigidbody.bodyType = RigidbodyType2D.Static;
-                StartCoroutine(bullletspawnLeft());
-            }
-            animator.SetTrigger("GunUse");
         }
-
     }
-    void die()
+    public void die()
     {
         Death.Play();
         animator.SetTrigger("Death");
@@ -163,6 +192,17 @@ public class Player2Movement : MonoBehaviour
         boxCollider.enabled = false;
 
 
+    }
+    public void TakeDamage(float damage)
+    {
+        currentHealth -= damage;
+        Debug.Log("player health: " + currentHealth);
+        //healthBar.SetHealth(currentHealth);
+
+        if (currentHealth <= 0)
+        {
+            die();
+        }
     }
     IEnumerator DeathManagement()
     {
@@ -210,8 +250,6 @@ public class Player2Movement : MonoBehaviour
             Laugh.Play();
         }
 
-
-
         if (collision.gameObject.CompareTag("Fall"))
         {
             Death.Play();
@@ -223,7 +261,13 @@ public class Player2Movement : MonoBehaviour
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
         }
 
-        ScoreText.text = "Treasures: " + score;
+        // collision with skeleton
+        if(collision.gameObject.layer == 6)
+        {
+            TakeDamage(10);
+        }
+
+        //ScoreText.text = "Treasures: " + score;
 
     }
     IEnumerator WhereIsTheMapSound()
@@ -269,5 +313,11 @@ public class Player2Movement : MonoBehaviour
     {
         return playerDirection;
     }
-  
+    public void OnDrawGizmosSelected()
+    {
+        if (attackpoint == null)
+            return;
+        Gizmos.DrawWireSphere(attackpoint.position,swordAttackRange);
+    }
+
 }

@@ -32,6 +32,9 @@ public class Bullet : MonoBehaviour
     }
     private void OnTriggerEnter2D(Collider2D collision)
     {
-       
+        if (collision.gameObject.CompareTag("skeleton"))
+        {
+            GetComponent<Skeleton>().takeDamage(50);
+        }
     }
 }

@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 5975040234184208511}
   - component: {fileID: 5975040234184208507}
   - component: {fileID: 5975040234184208506}
+  - component: {fileID: 6291080386086535722}
   - component: {fileID: 2081846170298424756}
   - component: {fileID: 709702535083834036}
   - component: {fileID: 1354115911949837411}
@@ -21,7 +22,7 @@ GameObject:
   - component: {fileID: 6183376157756285546}
   m_Layer: 0
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -142,7 +143,7 @@ Rigidbody2D:
   m_Constraints: 4
 --- !u!95 &5975040234184208507
 Animator:
-  serializedVersion: 4
+  serializedVersion: 5
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -159,7 +160,7 @@ Animator:
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorControllerStateOnDisable: 0
+  m_KeepAnimatorStateOnDisable: 0
 --- !u!114 &5975040234184208506
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -172,6 +173,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 52de3fcf5eaa7864f8925ef03d500d12, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  swordAttackRate: 1
+  gunAttackRate: 1
+  attackpoint: {fileID: 0}
+  swordAttackRange: 0.5
+  swordAttackDamage: 25
+  enemyLayers:
+    serializedVersion: 2
+    m_Bits: 0
   speed: 5
   jumpPower: 20
   GroundLayer:
@@ -186,6 +195,20 @@ MonoBehaviour:
   Death: {fileID: 6977621325319554668}
   collectables: {fileID: 6183376157756285546}
   ScoreText: {fileID: 0}
+--- !u!114 &6291080386086535722
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5975040234184208508}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a9452df651c563469a8ee910d44e9c0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 100
+  currentHealth: 0
 --- !u!82 &2081846170298424756
 AudioSource:
   m_ObjectHideFlags: 0
