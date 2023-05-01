@@ -168,7 +168,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 171757219}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
@@ -490,6 +490,7 @@ GameObject:
   m_Component:
   - component: {fileID: 654352739}
   - component: {fileID: 654352740}
+  - component: {fileID: 654352741}
   m_Layer: 0
   m_Name: Slider
   m_TagString: Untagged
@@ -564,13 +565,39 @@ MonoBehaviour:
   m_FillRect: {fileID: 2037678649}
   m_HandleRect: {fileID: 1514442007}
   m_Direction: 0
-  m_MinValue: 0
+  m_MinValue: 0.0001
   m_MaxValue: 1
   m_WholeNumbers: 0
-  m_Value: 0
+  m_Value: 0.009
   m_OnValueChanged:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 654352741}
+        m_TargetAssemblyTypeName: SliderControlVoice, Assembly-CSharp
+        m_MethodName: setVolume
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+--- !u!114 &654352741
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 654352738}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a5b53344bf27eb946942a4545abb5344, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  slider: {fileID: 654352740}
+  AudioMixer: {fileID: 24100000, guid: a17070610dcb1dd49aff1fecac0b5758, type: 2}
 --- !u!1 &665202529
 GameObject:
   m_ObjectHideFlags: 0
@@ -739,6 +766,10 @@ PrefabInstance:
       propertyPath: m_Volume
       value: 0.7
       objectReference: {fileID: 0}
+    - target: {fileID: 4688258915437182783, guid: fcee64e97062bb949a3a9b1428b57da1, type: 3}
+      propertyPath: OutputAudioMixerGroup
+      value: 
+      objectReference: {fileID: 24300002, guid: a17070610dcb1dd49aff1fecac0b5758, type: 2}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: fcee64e97062bb949a3a9b1428b57da1, type: 3}
 --- !u!1 &1067955990
@@ -1602,8 +1633,8 @@ RectTransform:
   m_Father: {fileID: 1084536723}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 1}
+  m_AnchorMin: {x: 0.00890089, y: 0}
+  m_AnchorMax: {x: 0.00890089, y: 1}
   m_AnchoredPosition: {x: -5.7, y: -0.00001335144}
   m_SizeDelta: {x: 32.42375, y: -0.000038146973}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -2466,7 +2497,7 @@ RectTransform:
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 1}
+  m_AnchorMax: {x: 0.00890089, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 10, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
