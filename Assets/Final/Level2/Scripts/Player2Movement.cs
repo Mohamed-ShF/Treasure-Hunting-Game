@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
+using Unity.VisualScripting;
 
 public class Player2Movement : MonoBehaviour
 {
@@ -14,12 +15,26 @@ public class Player2Movement : MonoBehaviour
     float playerDirection;
     int attackIndex = 0;
     int score = 0;
+    //add
+    public float swordAttackRate = 0.5f;
+    public float gunAttackRate = 1f;
+    float swordNextAttackTime = 0f;
+    float gunNextAttackTime = 0f;
+    public Transform attackpoint;
+    public float swordAttackRange = 0.5f;
+    public int swordAttackDamage = 25;
+    public LayerMask enemyLayers;
+    public float maxHealth = 100;
+    float currentHealth;
+    //
+
     [SerializeField] float speed = 0f;
     [SerializeField] float jumpPower = 0f;
     [SerializeField] LayerMask GroundLayer;
     [SerializeField] GameObject[] MapPiece;
     [SerializeField] GameObject bulletRight;
     [SerializeField] GameObject bulletLeft;
+    [SerializeField] Skeleton skeleton;
     //[SerializeField] Rigidbody2D bulletRigidBody;
     //[SerializeField] Animator bulletAnimator;
     [SerializeField] AudioSource whereIsTheMapSound;
@@ -33,13 +48,14 @@ public class Player2Movement : MonoBehaviour
 
     void Start()
     {
-        playerDirection = 1;
         respawnPoint = transform.position;
         rigidbody = GetComponent<Rigidbody2D>();
         boxCollider = GetComponent<BoxCollider2D>();
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         StartCoroutine(WhereIsTheMapSound());
+        currentHealth = maxHealth;
+
 
     }
 
@@ -52,10 +68,7 @@ public class Player2Movement : MonoBehaviour
         Animation();
         PlayerAttack();
         playerAnimationAttackWithGun();
-        Debug.Log(playerDirection);
-
-        // Debug.Log(playerDirection);
-
+       
 
     }
     void movePlayer()
@@ -82,12 +95,15 @@ public class Player2Movement : MonoBehaviour
         if (playerDirection > 0)
         {
             animator.SetInteger("State", 1);
-            spriteRenderer.flipX = false;
+            //  spriteRenderer.flipX = false;
+            transform.localScale = new Vector2(1, 1);
         }
         else if (playerDirection < 0)
         {
             animator.SetInteger("State", 1);
-            spriteRenderer.flipX = true;
+            //spriteRenderer.flipX = true;
+            transform.localScale = new Vector2(-1,1);
+
         }
         else
         {
@@ -106,53 +122,75 @@ public class Player2Movement : MonoBehaviour
     }
     void PlayerAttack()
     {
-        if (Input.GetKeyDown(KeyCode.X))
-        {
-            if (attackIndex == 0)
+        //to make the player doesn't attack consecutive, using time
+        if (Time.time >= swordNextAttackTime) {
+
+            if (Input.GetKeyDown(KeyCode.X))
             {
-                animator.SetTrigger("Attack1");
-                attackIndex++;
-                attackIndex %= 3;
+                if (attackIndex == 0)
+                {
+                    animator.SetTrigger("Attack1");
+                    attackIndex++;
+                    attackIndex %= 3;
+                    swordNextAttackTime = Time.time + swordAttackRate;
+
+                }
+                else if (attackIndex == 1)
+                {
+                    animator.SetTrigger("Attack2");
+                    attackIndex++;
+                    attackIndex %= 3;
+                    swordNextAttackTime = Time.time + swordAttackRate;
+
+                }
+                else
+                {
+                    animator.SetTrigger("Attack3");
+                    attackIndex++;
+                    attackIndex %= 3;
+                    swordNextAttackTime = Time.time + swordAttackRate;
+
+                }
+                //Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackpoint.position, swordAttackRange, enemyLayers);
+
+                //// loop on the array to find the enemy
+                //foreach (Collider2D enemy in hitEnemies)
+                //{
+                //    Debug.Log("enemy hit");
+                //    //skeleton.takeDamage(swordAttackDamage);
+                //}
 
             }
-            else if(attackIndex == 1) {
-                animator.SetTrigger("Attack2");
-                attackIndex++;
-                attackIndex %= 3;
+        }   
 
-            }
-            else
-            {
-                animator.SetTrigger("Attack3");
-                attackIndex++;
-                attackIndex %= 3;
-
-            }
-
-            
-
-            // animator.SetInteger("AttackIndex", attackIndex);
-
-            Debug.Log(attackIndex);
-        }
+           
         
     }
     void playerAnimationAttackWithGun() 
     {
-        if (Input.GetKeyDown(KeyCode.Y))
+        if (Time.time >= gunNextAttackTime)    //to make the player doesn't attack consecutive, using time
         {
-            if (spriteRenderer.flipX==false)
+            if (Input.GetKeyDown(KeyCode.Y))
             {
-                rigidbody.bodyType = RigidbodyType2D.Static;
-                StartCoroutine(bullletspawnRight());
+                if (transform.localScale.x > 0)
+                {
+                    rigidbody.bodyType = RigidbodyType2D.Static;
+                    StartCoroutine(bullletspawnRight());
+                    gunNextAttackTime = Time.time + gunAttackRate;
 
+
+                }
+                else if (transform.localScale.x < 0)
+                {
+                    rigidbody.bodyType = RigidbodyType2D.Static;
+                    StartCoroutine(bullletspawnLeft());
+                    gunNextAttackTime = Time.time + gunAttackRate;
+
+                }
+                animator.SetTrigger("GunUse");
             }
-            else if(spriteRenderer.flipX==true) {
-                rigidbody.bodyType = RigidbodyType2D.Static;
-                StartCoroutine(bullletspawnLeft());
-            }
-            animator.SetTrigger("GunUse");
         }
+            
 
     }
     void die()
@@ -171,8 +209,20 @@ public class Player2Movement : MonoBehaviour
         transform.position = respawnPoint;
         rigidbody.bodyType = RigidbodyType2D.Dynamic;
         boxCollider.enabled = true;
+        currentHealth = maxHealth;
 
 
+    }
+    public void TakeDamage(float damage)
+    {
+        currentHealth -= damage;
+        Debug.Log("player health: " + currentHealth);
+        //healthBar.SetHealth(currentHealth);
+
+        if (currentHealth <= 0)
+        {
+            StartCoroutine(DeathManagement());
+        }
     }
     private void OnTriggerEnter2D(Collider2D collision)
     {
@@ -222,10 +272,24 @@ public class Player2Movement : MonoBehaviour
         {
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
         }
+        if (collision.gameObject.CompareTag("skeleton"))
+        {
+            animator.SetTrigger("Hit");
+            TakeDamage(10f);
+        }
 
-        ScoreText.text = "Treasures: " + score;
+
+        //ScoreText.text = "Treasures: " + score;
 
     }
+    //private void OnTriggerStay2D(Collider2D other)
+    //{
+    //    if (other.gameObject.CompareTag("skeleton"))
+    //    {
+    //        animator.SetTrigger("Hit");
+    //        TakeDamage(10f);
+    //    }
+    //}
     IEnumerator WhereIsTheMapSound()
     {
         yield return new WaitForSeconds(5f);
@@ -241,18 +305,7 @@ public class Player2Movement : MonoBehaviour
             rigidbody.bodyType = RigidbodyType2D.Dynamic;
             yield return new WaitForSeconds(1.5f);
             Destroy(bulletClone);
-        //else if(playerDirection == -1) {
-        //    Debug.Log("left");
-
-        //    var bulletClone = Instantiate(bulletLeft, pos, Quaternion.identity);
-        //    yield return new WaitForSeconds(1.5f);
-        //    Destroy(bulletClone);
-        //}
-
-        //var bulletClone = Instantiate(bulletRight, pos, Quaternion.identity);
-        //rigidbody.bodyType = RigidbodyType2D.Dynamic;
-        //    yield return new WaitForSeconds(1.5f);
-        //    Destroy(bulletClone);
+        
 
     }
     IEnumerator bullletspawnLeft()
@@ -265,9 +318,11 @@ public class Player2Movement : MonoBehaviour
         Destroy(bulletClone);
 
     }
-    public float getPlayerDirection()
+    public void OnDrawGizmosSelected()
     {
-        return playerDirection;
+        if (attackpoint == null)
+            return;
+        Gizmos.DrawWireSphere(attackpoint.position, swordAttackRange);
     }
-  
+
 }

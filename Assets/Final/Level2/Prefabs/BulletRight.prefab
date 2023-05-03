@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 1382669020222068072}
   m_Layer: 0
   m_Name: BulletRight
-  m_TagString: Untagged
+  m_TagString: Bullet
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -126,7 +126,7 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 0.5, y: 0.2890625}
+    oldSize: {x: 0.64, y: 0.37}
     newSize: {x: 2, y: 1.15625}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -147,6 +147,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fef2ea6851c6a344a9f71788dfab7527, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  skeleton: {fileID: 6394773605105591552, guid: 00e43070e8077fe4bbdcef1c2134c58c, type: 3}
+  skeletonAnimator: {fileID: 7415622240003734265, guid: 00e43070e8077fe4bbdcef1c2134c58c, type: 3}
   speed: 10
 --- !u!95 &1382669020222068072
 Animator:

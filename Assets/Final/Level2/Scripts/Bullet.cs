@@ -8,15 +8,19 @@ public class Bullet : MonoBehaviour
     //float bulletDirection=1;
     Rigidbody2D rb;
     Animator animator;
+    [SerializeField] Skeleton skeleton;
+  //  [SerializeField] Animator skeletonAnimator;
     [SerializeField] float speed;
 
     // Start is called before the first frame update
+  
     void Start()
     {
       // player2= GetComponent<Player2Movement>();
         rb= GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         StartCoroutine(bulletDestroyAnimation());
+       
     }
 
     // Update is called once per frame
@@ -32,6 +36,14 @@ public class Bullet : MonoBehaviour
     }
     private void OnTriggerEnter2D(Collider2D collision)
     {
-       
+        if (collision.gameObject.CompareTag("skeleton"))
+        {
+            Debug.Log("Bullet touched");
+            StartCoroutine(bulletDestroyAnimation());
+           // skeleton.takeDamage(25,skeletonAnimator);
+           // Debug.Log(skeleton.currentHealth);
+
+            Destroy(gameObject);
+        }
     }
 }
