@@ -9,7 +9,7 @@ public class BallDisappear : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D collision)
     {
         
-        if (collision.gameObject.CompareTag("Ball[1]"))
+        if (collision.gameObject.CompareTag("Ball[0]") || collision.gameObject.CompareTag("Ball[1]"))
         {
             StartCoroutine(ballDisappear());
             Debug.Log("Destroy");

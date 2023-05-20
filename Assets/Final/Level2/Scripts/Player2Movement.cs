@@ -3,18 +3,22 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
+using Unity.VisualScripting;
+using UnityEngine.UI;
+//using UnityEngine.UIElements;
 
 public class Player2Movement : MonoBehaviour
 {
     Vector2 respawnPoint;
-    Rigidbody2D rigidbody;
+    Rigidbody2D playerRigidBody;
     BoxCollider2D boxCollider;
     SpriteRenderer spriteRenderer;
     Animator animator;
     float playerDirection;
     int attackIndex = 0;
     int score = 0;
-    public float swordAttackRate = 1f;
+    //add
+    public float swordAttackRate = 0.5f;
     public float gunAttackRate = 1f;
     float swordNextAttackTime = 0f;
     float gunNextAttackTime = 0f;
@@ -23,14 +27,18 @@ public class Player2Movement : MonoBehaviour
     public int swordAttackDamage = 25;
     public LayerMask enemyLayers;
     public float maxHealth = 100;
-    float currentHealth;
-
+    public float currentHealth;
+    //
+    Animator checkPointAnimator;
+    [SerializeField] Animator chestAnimator;
     [SerializeField] float speed = 0f;
     [SerializeField] float jumpPower = 0f;
     [SerializeField] LayerMask GroundLayer;
     [SerializeField] GameObject[] MapPiece;
     [SerializeField] GameObject bulletRight;
     [SerializeField] GameObject bulletLeft;
+    [SerializeField] GameObject key;
+    [SerializeField] SkeletonNotMoving skeleton;
     //[SerializeField] Rigidbody2D bulletRigidBody;
     //[SerializeField] Animator bulletAnimator;
     [SerializeField] AudioSource whereIsTheMapSound;
@@ -38,20 +46,27 @@ public class Player2Movement : MonoBehaviour
     [SerializeField] AudioSource Jump;
     [SerializeField] AudioSource Death;
     [SerializeField] AudioSource collectables;
-    [SerializeField] TextMeshProUGUI ScoreText;
+    [SerializeField] AudioSource gunShot;
+    [SerializeField] AudioSource swordSlash;
+    [SerializeField] AudioSource checkPointSound;
 
+    [SerializeField] TextMeshProUGUI ScoreText;
+    [SerializeField] Slider healthBarSlider;
+    [SerializeField] ControlHealthBar1 healthBar;
+    [SerializeField] Image fill;
 
 
     void Start()
     {
-        playerDirection = 1;
         respawnPoint = transform.position;
-        rigidbody = GetComponent<Rigidbody2D>();
+        playerRigidBody = GetComponent<Rigidbody2D>();
         boxCollider = GetComponent<BoxCollider2D>();
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         StartCoroutine(WhereIsTheMapSound());
         currentHealth = maxHealth;
+
+
     }
 
 
@@ -63,25 +78,22 @@ public class Player2Movement : MonoBehaviour
         Animation();
         PlayerAttack();
         playerAnimationAttackWithGun();
-        //Debug.Log(playerDirection);
-
-        // Debug.Log(playerDirection);
-
+       
 
     }
     void movePlayer()
     {
         playerDirection = Input.GetAxisRaw("Horizontal");
-        rigidbody.velocity = new Vector2(speed * playerDirection, rigidbody.velocity.y);
+        playerRigidBody.velocity = new Vector2(speed * playerDirection, playerRigidBody.velocity.y);
 
     }
     void playerJump()
     {
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded())
         {
-           // Jump.Play();
-            //Debug.Log("Jump");
-            rigidbody.velocity = new Vector2(rigidbody.velocity.x, jumpPower);
+           Jump.Play();
+            Debug.Log("Jump");
+            playerRigidBody.velocity = new Vector2(playerRigidBody.velocity.x, jumpPower);
         }
     }
     bool isGrounded()
@@ -93,23 +105,26 @@ public class Player2Movement : MonoBehaviour
         if (playerDirection > 0)
         {
             animator.SetInteger("State", 1);
-            spriteRenderer.flipX = false;
+            //  spriteRenderer.flipX = false;
+            transform.localScale = new Vector2(1, 1);
         }
         else if (playerDirection < 0)
         {
             animator.SetInteger("State", 1);
-            spriteRenderer.flipX = true;
+            //spriteRenderer.flipX = true;
+            transform.localScale = new Vector2(-1,1);
+
         }
         else
         {
             animator.SetInteger("State", 0);
         }
 
-        if (rigidbody.velocity.y > 0f && !isGrounded())
+        if (playerRigidBody.velocity.y > 0f && !isGrounded())
         {
             animator.SetInteger("State", 2);
         }
-        if (rigidbody.velocity.y < 0f && !isGrounded())
+        if (playerRigidBody.velocity.y < 0f && !isGrounded())
         {
             animator.SetInteger("State", 3);
         }
@@ -117,10 +132,12 @@ public class Player2Movement : MonoBehaviour
     }
     void PlayerAttack()
     {
-        if (Time.time >= swordNextAttackTime)    //to make the player doesn't attack consecutive, using time
-        {
-            if (Input.GetKeyDown(KeyCode.X))
+        //to make the player doesn't attack consecutive, using time
+        if (Time.time >= swordNextAttackTime) {
+
+            if (Input.GetKeyDown(KeyCode.U))
             {
+                swordSlash.Play();
                 if (attackIndex == 0)
                 {
                     animator.SetTrigger("Attack1");
@@ -145,80 +162,101 @@ public class Player2Movement : MonoBehaviour
                     swordNextAttackTime = Time.time + swordAttackRate;
 
                 }
-
-                // animator.SetInteger("AttackIndex", attackIndex);
-
-                Debug.Log(attackIndex);
-
-                // put every thing circle touch in array 
-                Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackpoint.position,swordAttackRange,enemyLayers);
+                Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackpoint.position, swordAttackRange, enemyLayers);
 
                 // loop on the array to find the enemy
-                foreach(Collider2D enemy in hitEnemies)
+                foreach (Collider2D enemy in hitEnemies)
                 {
-                    Debug.Log("enemy hit");
-                    enemy.GetComponent<Skeleton>().takeDamage(swordAttackDamage);
+                    enemy.GetComponent<SkeletonNotMoving>().takeDamage(25);
+                   
+
                 }
+
             }
-        }
+        }   
+
+           
+        
     }
+
+    
+
     void playerAnimationAttackWithGun() 
     {
         if (Time.time >= gunNextAttackTime)    //to make the player doesn't attack consecutive, using time
         {
             if (Input.GetKeyDown(KeyCode.Y))
             {
-                if (spriteRenderer.flipX == false)
+                gunShot.Play();
+                if (transform.localScale.x > 0)
                 {
-                    rigidbody.bodyType = RigidbodyType2D.Static;
+                    playerRigidBody.bodyType = RigidbodyType2D.Static;
                     StartCoroutine(bullletspawnRight());
                     gunNextAttackTime = Time.time + gunAttackRate;
+
+
                 }
-                else if (spriteRenderer.flipX == true)
+                else if (transform.localScale.x < 0)
                 {
-                    rigidbody.bodyType = RigidbodyType2D.Static;
+                    playerRigidBody.bodyType = RigidbodyType2D.Static;
                     StartCoroutine(bullletspawnLeft());
                     gunNextAttackTime = Time.time + gunAttackRate;
+
                 }
                 animator.SetTrigger("GunUse");
             }
         }
+            
+
     }
-    public void die()
+    void die()
     {
         Death.Play();
         animator.SetTrigger("Death");
-        rigidbody.bodyType = RigidbodyType2D.Static;
+        playerRigidBody.bodyType = RigidbodyType2D.Static;
         boxCollider.enabled = false;
 
 
     }
-    public void TakeDamage(float damage)
+    IEnumerator loadNextLevel()
     {
-        currentHealth -= damage;
-        Debug.Log("player health: " + currentHealth);
-        //healthBar.SetHealth(currentHealth);
-
-        if (currentHealth <= 0)
-        {
-            die();
-        }
+        yield return new WaitForSeconds(2f);
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
     }
     IEnumerator DeathManagement()
     {
         die();
         yield return new WaitForSeconds(1f);
         transform.position = respawnPoint;
-        rigidbody.bodyType = RigidbodyType2D.Dynamic;
+        playerRigidBody.bodyType = RigidbodyType2D.Dynamic;
         boxCollider.enabled = true;
+        currentHealth = maxHealth;
+        healthBarSlider.value = currentHealth;
+        fill.color = Color.green;
 
 
     }
-    private void OnTriggerEnter2D(Collider2D collision)
+    public void TakeDamage(float damage)
     {
-        if (collision.gameObject.CompareTag("Ball[1]") || collision.gameObject.CompareTag("Ball[0]") || collision.gameObject.CompareTag("CannonBall") || collision.gameObject.CompareTag("Pearl") || collision.gameObject.CompareTag("Spike"))
+        currentHealth -= damage;
+        animator.SetTrigger("Hit");
+        Debug.Log("player health: " + currentHealth);
+        //healthBar.SetHealth(currentHealth);
+        healthBar.UpdateHealthBar();
+
+        if (currentHealth <= 0)
         {
             StartCoroutine(DeathManagement());
+        }
+    }
+    private void OnTriggerEnter2D(Collider2D collision)
+        //|| collision.gameObject.CompareTag("Spike")
+    {
+        if (collision.gameObject.CompareTag("Ball[1]") || collision.gameObject.CompareTag("Ball[0]") || collision.gameObject.CompareTag("Pearl") || collision.gameObject.CompareTag("Spike"))
+        {
+            //
+            //StartCoroutine(DeathManagement());
+            TakeDamage(20);
         }
         if (collision.gameObject.CompareTag("Collectible"))
         {
@@ -240,8 +278,14 @@ public class Player2Movement : MonoBehaviour
         }
         if (collision.gameObject.CompareTag("Respawn"))
         {
+            checkPointSound.Play();
             respawnPoint = transform.position;
+            checkPointAnimator= collision.GetComponent<Animator>();
             Destroy(collision.GetComponent<BoxCollider2D>());
+            checkPointAnimator.SetTrigger("Touch");
+            Invoke("FlagOut", 1.0f);
+           // FlagOut();
+
         }
 
         if (collision.gameObject.CompareTag("MapPiece"))
@@ -250,30 +294,62 @@ public class Player2Movement : MonoBehaviour
             Laugh.Play();
         }
 
+
+
         if (collision.gameObject.CompareTag("Fall"))
         {
             Death.Play();
+            TakeDamage(5);
             transform.position = respawnPoint;
 
         }
         if (collision.gameObject.CompareTag("IntoTheShip"))
         {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
-        }
+            StartCoroutine(loadNextLevel());
 
-        // collision with skeleton
-        if(collision.gameObject.layer == 6)
+        }
+        if (collision.gameObject.CompareTag("skeleton"))
         {
-            TakeDamage(10);
+            animator.SetTrigger("Hit");
+            TakeDamage(10f);
+        }
+        if (collision.gameObject.CompareTag("Chest") && key.gameObject.activeSelf==false)
+        {
+           // Invoke("LoadNextLevel", 1f);
+            chestAnimator.SetTrigger("Open");
+            StartCoroutine(loadNextLevel());
+          //  loadNextLevel();
+
+        }
+        if (collision.gameObject.CompareTag("Key"))
+        {
+            collision.gameObject.GetComponent<Animator>().SetTrigger("Touch");
+            StartCoroutine(KeyDisappear(collision));
+
         }
 
-        //ScoreText.text = "Treasures: " + score;
+
+        ScoreText.text = "Treasures: " + score;
 
     }
+
+    IEnumerator KeyDisappear(Collider2D collision)
+    {
+        yield return new WaitForSeconds(0.6f);
+        collision.gameObject.SetActive(false);
+    }
+
+
+    private void FlagOut()
+    {
+        checkPointAnimator.SetTrigger("FlagOut");
+    }
+
+   
     IEnumerator WhereIsTheMapSound()
     {
         yield return new WaitForSeconds(5f);
-        whereIsTheMapSound.Play();
+       // whereIsTheMapSound.Play();
     }
     IEnumerator bullletspawnRight()
     {
@@ -282,21 +358,10 @@ public class Player2Movement : MonoBehaviour
             Debug.Log("Right");
 
             var bulletClone = Instantiate(bulletRight, pos, Quaternion.identity);
-            rigidbody.bodyType = RigidbodyType2D.Dynamic;
+            playerRigidBody.bodyType = RigidbodyType2D.Dynamic;
             yield return new WaitForSeconds(1.5f);
             Destroy(bulletClone);
-        //else if(playerDirection == -1) {
-        //    Debug.Log("left");
-
-        //    var bulletClone = Instantiate(bulletLeft, pos, Quaternion.identity);
-        //    yield return new WaitForSeconds(1.5f);
-        //    Destroy(bulletClone);
-        //}
-
-        //var bulletClone = Instantiate(bulletRight, pos, Quaternion.identity);
-        //rigidbody.bodyType = RigidbodyType2D.Dynamic;
-        //    yield return new WaitForSeconds(1.5f);
-        //    Destroy(bulletClone);
+        
 
     }
     IEnumerator bullletspawnLeft()
@@ -304,20 +369,16 @@ public class Player2Movement : MonoBehaviour
         var pos = new Vector2(transform.position.x, transform.position.y);
         yield return new WaitForSeconds(0.5f);
         var bulletClone = Instantiate(bulletLeft, pos, Quaternion.identity);
-        rigidbody.bodyType = RigidbodyType2D.Dynamic;
+        playerRigidBody.bodyType = RigidbodyType2D.Dynamic;
         yield return new WaitForSeconds(1.5f);
         Destroy(bulletClone);
 
-    }
-    public float getPlayerDirection()
-    {
-        return playerDirection;
     }
     public void OnDrawGizmosSelected()
     {
         if (attackpoint == null)
             return;
-        Gizmos.DrawWireSphere(attackpoint.position,swordAttackRange);
+        Gizmos.DrawWireSphere(attackpoint.position, swordAttackRange);
     }
 
 }
