@@ -10,7 +10,15 @@ public class GoToShipSound : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Player"))
         {
-            audioSource.Play();
+            StartCoroutine(muteBGM());
         }
+    }
+    IEnumerator muteBGM() { 
+        BackgroundMusic.instance.pauseBGM();
+        audioSource.Play();
+        yield return new WaitForSecondsRealtime(11.6f);
+        BackgroundMusic.instance.playBGM();
+
+
     }
 }

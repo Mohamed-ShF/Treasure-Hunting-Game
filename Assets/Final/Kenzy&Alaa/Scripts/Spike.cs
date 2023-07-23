@@ -6,7 +6,7 @@ using UnityEngine;
 public class Spike : MonoBehaviour
 {
     Rigidbody2D spikeRigidbody;
-    [SerializeField] float speed;
+    public float speed;
     private void Start()
     {
         spikeRigidbody= GetComponent<Rigidbody2D>();

@@ -8,7 +8,7 @@ public class SpikeDisappear : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Spike"))
         {
-            Destroy(collision.gameObject);
+            collision.gameObject.SetActive(false);
         }
     }
 }

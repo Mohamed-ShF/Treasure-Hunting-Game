@@ -10,7 +10,7 @@ public class Bullet : MonoBehaviour
     Animator animator;
     [SerializeField] Skeleton skeleton;
   //  [SerializeField] Animator skeletonAnimator;
-    [SerializeField] float speed;
+    public float speed;
 
     // Start is called before the first frame update
   
@@ -33,17 +33,18 @@ public class Bullet : MonoBehaviour
     {
         yield return new WaitForSeconds(1.25f);
         animator.SetTrigger("Disappear");
+        gameObject.SetActive(false);
     }
-    private void OnTriggerEnter2D(Collider2D collision)
-    {
-        if (collision.gameObject.CompareTag("skeleton"))
-        {
-            Debug.Log("Bullet touched");
-            StartCoroutine(bulletDestroyAnimation());
-           // skeleton.takeDamage(25,skeletonAnimator);
-           // Debug.Log(skeleton.currentHealth);
+    //private void OnTriggerEnter2D(Collider2D collision)
+    //{
+    //    if (collision.gameObject.CompareTag("skeleton"))
+    //    {
+    //        Debug.Log("Bullet touched");
+    //        StartCoroutine(bulletDestroyAnimation());
+    //       // skeleton.takeDamage(25,skeletonAnimator);
+    //       // Debug.Log(skeleton.currentHealth);
 
-            Destroy(gameObject);
-        }
-    }
+    //        Destroy(gameObject);
+    //    }
+    //}
 }

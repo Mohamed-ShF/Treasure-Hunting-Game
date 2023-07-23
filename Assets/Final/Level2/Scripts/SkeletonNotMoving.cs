@@ -16,7 +16,7 @@ public class SkeletonNotMoving : MonoBehaviour
 
     float swordNextAttackTime = 0f;
     int maxHealth = 50;
-    int currentHealth;
+    public int currentHealth;
     Animator animator;
     CapsuleCollider2D normalCollider;
 
@@ -33,7 +33,7 @@ public class SkeletonNotMoving : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        detectSwordAttack();
+        //detectSwordAttack();
         if (currentHealth <= 0)
         {
             this.enabled = false;
@@ -51,7 +51,16 @@ public class SkeletonNotMoving : MonoBehaviour
         }
 
     }
-
+    //public void takeDamageFromSword(int damage)
+    //{
+    //    currentHealth -= damage;
+    //    if(currentHealth <= 0)
+    //    {
+    //        currentHealth = maxHealth;
+    //    }
+       
+    //}
+   
 
 
     void die()
@@ -67,30 +76,32 @@ public class SkeletonNotMoving : MonoBehaviour
         Invoke("DisableEnemy", 1.5f);
 
     }
-    void detectSwordAttack()
-    {
-        if (Time.time >= swordNextAttackTime)
-        {
-            if (Input.GetKeyDown(KeyCode.X))
-            {
-                Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackpoint.position, swordAttackRange, enemyLayers);
+    //void detectSwordAttack()
+    //{
+    //    if (Time.time >= swordNextAttackTime)
+    //    {
+    //        if (Input.GetKeyDown(KeyCode.X))
+    //        {
+    //            Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackpoint.position, swordAttackRange, enemyLayers);
 
-                // loop on the array to find the enemy
-                foreach (Collider2D enemy in hitEnemies)
-                {
-                    Debug.Log("enemy hit");
-                    takeDamage(25);
 
-                }
-                //takeDamage(25);
-            }
-        }
-            
-    }
+    //            //// loop on the array to find the enemy
+    //            foreach (Collider2D enemy in hitEnemies)
+    //            {
+    //                Debug.Log("enemy hit");
+    //                takeDamage(25);
+
+    //            }
+    //            //takeDamage(25);
+    //        }
+    //    }
+
+    //}
 
     private void DisableEnemy()
     {
         normalCollider.enabled = false;
+
         GetComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Static;
 
     }
@@ -102,11 +113,6 @@ public class SkeletonNotMoving : MonoBehaviour
             Debug.Log("BulletTouchedSkeleton");
             takeDamage(25);
         }
-        if (other.gameObject.CompareTag("AttackPoint"))
-        {
-            
-
-
-        }
+       
     }
 }

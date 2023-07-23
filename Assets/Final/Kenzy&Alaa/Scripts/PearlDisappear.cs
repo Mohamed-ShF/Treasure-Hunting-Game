@@ -4,14 +4,13 @@ using UnityEngine;
 
 public class PearlDisappear : MonoBehaviour
 {
-    [SerializeField] GameObject[] pearls;
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.gameObject.CompareTag("Pearl"))
         {
             StartCoroutine(DetectPearls());
-            Destroy(collision.gameObject);
+            collision.gameObject.SetActive(false);
         }
     }
     IEnumerator DetectPearls()

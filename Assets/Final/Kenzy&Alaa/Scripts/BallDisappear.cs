@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class BallDisappear : MonoBehaviour
 {
-    [SerializeField] GameObject[] ball;
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
@@ -13,7 +12,8 @@ public class BallDisappear : MonoBehaviour
         {
             StartCoroutine(ballDisappear());
             Debug.Log("Destroy");
-            Destroy(collision.gameObject);
+            collision.gameObject.SetActive(false);
+
         }
 
     }

@@ -4,26 +4,35 @@ using UnityEngine;
 
 public class SpawnSpikes : MonoBehaviour
 {
-    [SerializeField] GameObject spike;
-    Transform spawnPoint;
+     GameObject spike;
+     Transform spawnPoint;
+     Vector3 pos;
     void Start()
     {
         spawnPoint = transform;
+        pos = new Vector3(spawnPoint.position.x, spawnPoint.position.y, 0);
         StartCoroutine(spawn());
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+   
     IEnumerator spawn()
     {
         
-        var pos = new Vector3(spawnPoint.position.x, spawnPoint.position.y,0);
         while (true)
         {
-            Instantiate(spike, pos, Quaternion.identity);
+            spike = spikePool.instance.returnSpiks();
+
+            if (gameObject.CompareTag("left"))
+            {
+                spike.GetComponent<Spike>().speed = 3f;
+            }
+            else if (gameObject.CompareTag("right"))
+            {
+                spike.GetComponent<Spike>().speed = -3f;
+
+            }
+            spike.transform.position = pos;
+            spike.SetActive(true);
             yield return new WaitForSecondsRealtime(1.8f);
         }
         

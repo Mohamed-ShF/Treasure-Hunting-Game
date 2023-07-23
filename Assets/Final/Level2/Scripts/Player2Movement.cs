@@ -4,11 +4,13 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
 using Unity.VisualScripting;
+using UnityEngine.UI;
+//using UnityEngine.UIElements;
 
 public class Player2Movement : MonoBehaviour
 {
     Vector2 respawnPoint;
-    Rigidbody2D rigidbody;
+    Rigidbody2D playerRigidBody;
     BoxCollider2D boxCollider;
     SpriteRenderer spriteRenderer;
     Animator animator;
@@ -25,31 +27,40 @@ public class Player2Movement : MonoBehaviour
     public int swordAttackDamage = 25;
     public LayerMask enemyLayers;
     public float maxHealth = 100;
-    float currentHealth;
+    public float currentHealth;
     //
+    Animator checkPointAnimator;
 
+
+    [SerializeField] Animator chestAnimator;
     [SerializeField] float speed = 0f;
     [SerializeField] float jumpPower = 0f;
     [SerializeField] LayerMask GroundLayer;
     [SerializeField] GameObject[] MapPiece;
     [SerializeField] GameObject bulletRight;
     [SerializeField] GameObject bulletLeft;
-    [SerializeField] Skeleton skeleton;
-    //[SerializeField] Rigidbody2D bulletRigidBody;
-    //[SerializeField] Animator bulletAnimator;
+    [SerializeField] GameObject key;
+    [SerializeField] SkeletonNotMoving skeleton;
+    
     [SerializeField] AudioSource whereIsTheMapSound;
     [SerializeField] AudioSource Laugh;
     [SerializeField] AudioSource Jump;
     [SerializeField] AudioSource Death;
     [SerializeField] AudioSource collectables;
-    [SerializeField] TextMeshProUGUI ScoreText;
+    [SerializeField] AudioSource gunShot;
+    [SerializeField] AudioSource swordSlash;
+    [SerializeField] AudioSource checkPointSound;
 
+    [SerializeField] TextMeshProUGUI ScoreText;
+    [SerializeField] Slider healthBarSlider;
+    [SerializeField] ControlHealthBar1 healthBar;
+    [SerializeField] Image fill;
 
 
     void Start()
     {
         respawnPoint = transform.position;
-        rigidbody = GetComponent<Rigidbody2D>();
+        playerRigidBody = GetComponent<Rigidbody2D>();
         boxCollider = GetComponent<BoxCollider2D>();
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
@@ -66,24 +77,28 @@ public class Player2Movement : MonoBehaviour
         movePlayer();
         playerJump();
         Animation();
-        PlayerAttack();
-        playerAnimationAttackWithGun();
+        if(SceneManager.GetActiveScene().buildIndex > 1)
+        {
+            PlayerAttack();
+            playerAnimationAttackWithGun();
+        }
+        
        
 
     }
     void movePlayer()
     {
         playerDirection = Input.GetAxisRaw("Horizontal");
-        rigidbody.velocity = new Vector2(speed * playerDirection, rigidbody.velocity.y);
+        playerRigidBody.velocity = new Vector2(speed * playerDirection, playerRigidBody.velocity.y);
 
     }
     void playerJump()
     {
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded())
         {
-           // Jump.Play();
+           Jump.Play();
             Debug.Log("Jump");
-            rigidbody.velocity = new Vector2(rigidbody.velocity.x, jumpPower);
+            playerRigidBody.velocity = new Vector2(playerRigidBody.velocity.x, jumpPower);
         }
     }
     bool isGrounded()
@@ -110,23 +125,25 @@ public class Player2Movement : MonoBehaviour
             animator.SetInteger("State", 0);
         }
 
-        if (rigidbody.velocity.y > 0f && !isGrounded())
+        if (playerRigidBody.velocity.y > 0f && !isGrounded())
         {
             animator.SetInteger("State", 2);
         }
-        if (rigidbody.velocity.y < 0f && !isGrounded())
+        if (playerRigidBody.velocity.y < 0f && !isGrounded())
         {
             animator.SetInteger("State", 3);
         }
 
     }
+
     void PlayerAttack()
     {
         //to make the player doesn't attack consecutive, using time
         if (Time.time >= swordNextAttackTime) {
 
-            if (Input.GetKeyDown(KeyCode.X))
+            if (Input.GetKeyDown(KeyCode.U))
             {
+                swordSlash.Play();
                 if (attackIndex == 0)
                 {
                     animator.SetTrigger("Attack1");
@@ -151,14 +168,15 @@ public class Player2Movement : MonoBehaviour
                     swordNextAttackTime = Time.time + swordAttackRate;
 
                 }
-                //Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackpoint.position, swordAttackRange, enemyLayers);
+                Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackpoint.position, swordAttackRange, enemyLayers);
 
-                //// loop on the array to find the enemy
-                //foreach (Collider2D enemy in hitEnemies)
-                //{
-                //    Debug.Log("enemy hit");
-                //    //skeleton.takeDamage(swordAttackDamage);
-                //}
+                // loop on the array to find the enemy
+                foreach (Collider2D enemy in hitEnemies)
+                {
+                    enemy.GetComponent<SkeletonNotMoving>().takeDamage(25);
+                   
+
+                }
 
             }
         }   
@@ -166,58 +184,58 @@ public class Player2Movement : MonoBehaviour
            
         
     }
+
     void playerAnimationAttackWithGun() 
     {
         if (Time.time >= gunNextAttackTime)    //to make the player doesn't attack consecutive, using time
         {
             if (Input.GetKeyDown(KeyCode.Y))
             {
-                if (transform.localScale.x > 0)
-                {
-                    rigidbody.bodyType = RigidbodyType2D.Static;
-                    StartCoroutine(bullletspawnRight());
-                    gunNextAttackTime = Time.time + gunAttackRate;
-
-
-                }
-                else if (transform.localScale.x < 0)
-                {
-                    rigidbody.bodyType = RigidbodyType2D.Static;
-                    StartCoroutine(bullletspawnLeft());
-                    gunNextAttackTime = Time.time + gunAttackRate;
-
-                }
+                gunShot.Play();
+                playerRigidBody.bodyType = RigidbodyType2D.Static;
+                StartCoroutine(bulletSpawn());
+                gunNextAttackTime = Time.time + gunAttackRate;
                 animator.SetTrigger("GunUse");
             }
         }
             
 
     }
+
     void die()
     {
         Death.Play();
         animator.SetTrigger("Death");
-        rigidbody.bodyType = RigidbodyType2D.Static;
+        playerRigidBody.bodyType = RigidbodyType2D.Static;
         boxCollider.enabled = false;
 
 
+    }
+
+    IEnumerator loadNextLevel()
+    {
+        yield return new WaitForSeconds(2f);
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
     }
     IEnumerator DeathManagement()
     {
         die();
         yield return new WaitForSeconds(1f);
         transform.position = respawnPoint;
-        rigidbody.bodyType = RigidbodyType2D.Dynamic;
+        playerRigidBody.bodyType = RigidbodyType2D.Dynamic;
         boxCollider.enabled = true;
         currentHealth = maxHealth;
+        healthBarSlider.value = currentHealth;
+        fill.color = Color.green;
 
 
     }
     public void TakeDamage(float damage)
     {
         currentHealth -= damage;
+        animator.SetTrigger("Hit");
         Debug.Log("player health: " + currentHealth);
-        //healthBar.SetHealth(currentHealth);
+        healthBar.UpdateHealthBar();
 
         if (currentHealth <= 0)
         {
@@ -226,9 +244,11 @@ public class Player2Movement : MonoBehaviour
     }
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.gameObject.CompareTag("Ball[1]") || collision.gameObject.CompareTag("Ball[0]") || collision.gameObject.CompareTag("CannonBall") || collision.gameObject.CompareTag("Pearl") || collision.gameObject.CompareTag("Spike"))
+        if (collision.gameObject.CompareTag("Ball[1]") || collision.gameObject.CompareTag("Ball[0]") || collision.gameObject.CompareTag("Pearl") || collision.gameObject.CompareTag("Spike"))
         {
-            StartCoroutine(DeathManagement());
+            //
+            //StartCoroutine(DeathManagement());
+            TakeDamage(20);
         }
         if (collision.gameObject.CompareTag("Collectible"))
         {
@@ -250,59 +270,120 @@ public class Player2Movement : MonoBehaviour
         }
         if (collision.gameObject.CompareTag("Respawn"))
         {
+            checkPointSound.Play();
             respawnPoint = transform.position;
+            checkPointAnimator= collision.GetComponent<Animator>();
             Destroy(collision.GetComponent<BoxCollider2D>());
+            checkPointAnimator.SetTrigger("Touch");
+            Invoke("FlagOut", 1.0f);
+           
+
         }
 
         if (collision.gameObject.CompareTag("MapPiece"))
         {
+            StartCoroutine(pauseUnpauseBGM(1));
             collision.gameObject.SetActive(false);
-            Laugh.Play();
+            //Laugh.Play();
         }
 
 
 
         if (collision.gameObject.CompareTag("Fall"))
         {
-            Death.Play();
+            StartCoroutine(pauseUnpauseBGM(3));
+            TakeDamage(5);
             transform.position = respawnPoint;
 
         }
         if (collision.gameObject.CompareTag("IntoTheShip"))
         {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+            StartCoroutine(loadNextLevel());
+
         }
         if (collision.gameObject.CompareTag("skeleton"))
         {
             animator.SetTrigger("Hit");
             TakeDamage(10f);
         }
+        if (collision.gameObject.CompareTag("Chest") && key.gameObject.activeSelf==false)
+        {
+           // Invoke("LoadNextLevel", 1f);
+            chestAnimator.SetTrigger("Open");
+            StartCoroutine(loadNextLevel());
+          //  loadNextLevel();
+
+        }
+        if (collision.gameObject.CompareTag("Key"))
+        {
+            collision.gameObject.GetComponent<Animator>().SetTrigger("Touch");
+            StartCoroutine(KeyDisappear(collision));
+
+        }
 
 
-        //ScoreText.text = "Treasures: " + score;
+        ScoreText.text = "Treasures: " + score;
 
     }
-    //private void OnTriggerStay2D(Collider2D other)
-    //{
-    //    if (other.gameObject.CompareTag("skeleton"))
-    //    {
-    //        animator.SetTrigger("Hit");
-    //        TakeDamage(10f);
-    //    }
-    //}
+
+    IEnumerator KeyDisappear(Collider2D collision)
+    {
+        yield return new WaitForSeconds(0.6f);
+        collision.gameObject.SetActive(false);
+    }
+
+
+    private void FlagOut()
+    {
+        checkPointAnimator.SetTrigger("FlagOut");
+    }
+
+   
     IEnumerator WhereIsTheMapSound()
     {
         yield return new WaitForSeconds(5f);
-        whereIsTheMapSound.Play();
+        if (SceneManager.GetActiveScene().buildIndex == 1)
+        {
+            whereIsTheMapSound.Play();
+
+        }
+
+    }
+
+    IEnumerator bulletSpawn()
+    {
+        Vector2 pos;
+        GameObject bullet;
+        yield return new WaitForSeconds(0.5f);
+        bullet = BulletPool.instance.returnBullet();
+        if(transform.localScale.x < 0f)
+        {
+            pos = new Vector2(transform.position.x - 1f, transform.position.y);
+            bullet.transform.localScale = new Vector2(1, 1);
+            bullet.GetComponent<Bullet>().speed = -20f;
+            bullet.transform.position = pos;
+        }
+        else if(transform.localScale.x > 0f)
+        {
+            pos = new Vector2(transform.position.x + 1f, transform.position.y);
+            bullet.transform.localScale = new Vector2(-1, 1);
+            bullet.GetComponent<Bullet>().speed = 20f;
+            bullet.transform.position = pos;
+        }
+        bullet.SetActive(true);
+        playerRigidBody.bodyType = RigidbodyType2D.Dynamic;
+        yield return new WaitForSeconds(1.5f);
+        bullet.SetActive(false);
+
     }
     IEnumerator bullletspawnRight()
     {
-        var pos = new Vector2(transform.position.x, transform.position.y);
+        var pos = new Vector2(transform.position.x+1f, transform.position.y);
         yield return new WaitForSeconds(0.5f);
             Debug.Log("Right");
 
             var bulletClone = Instantiate(bulletRight, pos, Quaternion.identity);
-            rigidbody.bodyType = RigidbodyType2D.Dynamic;
+            playerRigidBody.bodyType = RigidbodyType2D.Dynamic;
             yield return new WaitForSeconds(1.5f);
             Destroy(bulletClone);
         
@@ -313,7 +394,7 @@ public class Player2Movement : MonoBehaviour
         var pos = new Vector2(transform.position.x, transform.position.y);
         yield return new WaitForSeconds(0.5f);
         var bulletClone = Instantiate(bulletLeft, pos, Quaternion.identity);
-        rigidbody.bodyType = RigidbodyType2D.Dynamic;
+        playerRigidBody.bodyType = RigidbodyType2D.Dynamic;
         yield return new WaitForSeconds(1.5f);
         Destroy(bulletClone);
 
@@ -323,6 +404,34 @@ public class Player2Movement : MonoBehaviour
         if (attackpoint == null)
             return;
         Gizmos.DrawWireSphere(attackpoint.position, swordAttackRange);
+    }
+
+    IEnumerator pauseUnpauseBGM(int index)
+    {
+        BackgroundMusic.instance.pauseBGM();
+        if(index == 0)
+        {
+            yield return new WaitForSeconds(0.5f);
+
+        }
+        else if (index == 1)
+        {
+            Laugh.Play();
+            yield return new WaitForSecondsRealtime(3f);
+
+        }
+        else if (index == 2)
+        {
+            yield return new WaitForSeconds(0.5f);
+
+        }
+        else if (index == 3)
+        {
+            Death.Play();
+            yield return new WaitForSecondsRealtime(2.2f);
+
+        }
+        BackgroundMusic.instance.playBGM();
     }
 
 }

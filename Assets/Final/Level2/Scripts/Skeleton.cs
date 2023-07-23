@@ -21,6 +21,7 @@ public class Skeleton : MonoBehaviour
     [SerializeField] Transform attackpoint;
     [SerializeField] Transform skeletonAttackPoint;
     [SerializeField] LayerMask PlayerLayer;
+    [SerializeField] Player2Movement player2;
     public LayerMask enemyLayers;
     public float swordAttackRange = 0.5f;
     public float moveSpeed = 2.0f;
@@ -28,6 +29,11 @@ public class Skeleton : MonoBehaviour
     public float attackRange = 3.0f;
     public float playerenemydiff = 7.0f;
     public float attackRate = 2f;
+    float nextAttackSkeleton = 0f;
+    float nextAttackSkeletonRate = 1f;
+
+
+
     //float nextAttackTime = 0f;
     int maxHealth = 50;
     int currentHealth;
@@ -55,7 +61,7 @@ public class Skeleton : MonoBehaviour
         }
         else if (diff < 1.5f && currentHealth > 0)
         {
-          //  Debug.Log("FirstAttackMode");
+       //  Debug.Log("FirstAttackMode");
             Attack();
         }
         else if(diff >7.0f && currentHealth > 0)
@@ -64,15 +70,10 @@ public class Skeleton : MonoBehaviour
             Idle();
 
         }
-        else
-        {
-          //  Debug.Log("ElseAttackMode");
-            Attack();
-        }
         if (currentHealth <= 0)
         {
-            Debug.Log("Dead");
-            this.enabled = false;
+            //Debug.Log("Dead");
+           this.enabled = false;
         }
 
        
@@ -88,7 +89,7 @@ public class Skeleton : MonoBehaviour
 
     private void Chase()
     {
-       // Debug.Log("ChaseMode");
+        // Debug.Log("ChaseMode");
         animator.SetInteger("run", 1);
         animator.SetBool("attack", false);
 
@@ -110,32 +111,32 @@ public class Skeleton : MonoBehaviour
 
 
 
-       
+
     }
 
     private void Attack()
     {
         // Stop moving
-        animator.SetBool("attack", true);
+        //  Debug.Log("FirstAttackMode");
+        if(Time.time >= nextAttackSkeleton)
+        {
+            animator.SetBool("attack", true);
+            Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(skeletonAttackPoint.position, swordAttackRange, PlayerLayer);
 
-        //Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(skeletonAttackPoint.position, swordAttackRange, PlayerLayer);
+            // loop on the array to find the enemy
+            foreach (Collider2D enemy in hitEnemies)
+            {
+                Debug.Log("Player hit");
+                player2.TakeDamage(attackDamage);
 
-        //// loop on the array to find the enemy
-        //foreach (Collider2D enemy in hitEnemies)
-        //{
-        //    //Debug.Log("Player hit");
-            
+            }
+            nextAttackSkeleton = Time.time + nextAttackSkeletonRate;
 
-        //}
+        }
 
-
-
-
-
+       
     }
-
-
-
+    
     public void takeDamage(int damage)
     {
         //currentState = EnemyState.Damage;
@@ -148,6 +149,8 @@ public class Skeleton : MonoBehaviour
       
         if (currentHealth <= 0)
         {
+            animator.SetBool("attack", false);
+
             die();
         }
       //  animator.SetInteger("run", 0);
@@ -162,8 +165,12 @@ public class Skeleton : MonoBehaviour
         //currentState = EnemyState.Die;
         if (animator.gameObject.activeSelf)
         {
+        animator.SetBool("attack", false);
+
             animator.SetTrigger("die");
-            animator.SetBool("attack", false);
+          //  Debug.Log("Die");
+
+           // animator.SetBool("attack", false);
 
         }
 
@@ -187,17 +194,25 @@ public class Skeleton : MonoBehaviour
 
 
         }
+        if (collision.gameObject.CompareTag("Bullet"))
+        {
+            Debug.Log("BulletTouchedSkeleton");
+            //collision.gameObject.SetActive(false);
+
+            takeDamage(25);
+        }
 
     }
 
     private void OnTriggerExit2D(Collider2D other)
     {
         
-        if (other.gameObject.CompareTag("Bullet"))
-        {
-            Debug.Log("BulletTouchedSkeleton");
-            takeDamage(25);
-        }
+        //if (other.gameObject.CompareTag("Bullet"))
+        //{
+        //    Debug.Log("BulletTouchedSkeleton");
+        //    takeDamage(25);
+        //    Destroy(other.gameObject);
+        //}
         if (other.gameObject.CompareTag("AttackPoint"))
         {
             if (Input.GetKeyDown(KeyCode.X))
@@ -211,21 +226,12 @@ public class Skeleton : MonoBehaviour
                     takeDamage(25);
 
                 }
-               
+
             }
 
                 
         }
     }
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
-        if (collision.gameObject.CompareTag("Player"))
-        {
-            Debug.Log("PlayerTouched");
-            //Attack();
-        }
-      
-
-    }
+    
 
 }

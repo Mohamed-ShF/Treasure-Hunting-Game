@@ -148,8 +148,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   skeleton: {fileID: 6394773605105591552, guid: 00e43070e8077fe4bbdcef1c2134c58c, type: 3}
-  skeletonAnimator: {fileID: 7415622240003734265, guid: 00e43070e8077fe4bbdcef1c2134c58c, type: 3}
-  speed: 10
+  speed: 20
 --- !u!95 &1382669020222068072
 Animator:
   serializedVersion: 4
